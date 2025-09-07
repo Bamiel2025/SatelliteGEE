@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getLocationHistory, clearLocationHistory } from '../services/locationHistory';
-import { getLocationFavorites, isLocationFavorite, toggleLocationFavorite } from '../services/locationFavorites';
 
 const ControlPanel = ({
   location,
@@ -25,24 +24,16 @@ const ControlPanel = ({
   const [localDates, setLocalDates] = useState(dates);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [locationHistory, setLocationHistory] = useState([]);
-  const [locationFavorites, setLocationFavorites] = useState([]);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [isLocationSearching, setIsLocationSearching] = useState(false);
   const [locationSearchError, setLocationSearchError] = useState(null);
   const locationInputRef = useRef(null);
   const suggestionsListRef = useRef(null);
 
-  // Load location history and favorites on component mount
+  // Load location history on component mount
   useEffect(() => {
     setLocationHistory(getLocationHistory());
-    setLocationFavorites(getLocationFavorites());
   }, []);
-
-  // Check if current location is favorite
-  useEffect(() => {
-    setIsFavorite(isLocationFavorite(locationName));
-  }, [locationName]);
 
   // Keyboard navigation for suggestions
   const handleKeyDown = (e) => {
@@ -50,8 +41,8 @@ const ControlPanel = ({
 
     const suggestions = [];
     if (!localLocationName) {
-      // When no search term, combine favorites and history
-      suggestions.push(...locationFavorites, ...locationHistory);
+      // When no search term, show history
+      suggestions.push(...locationHistory);
     }
 
     switch (e.key) {
@@ -149,29 +140,11 @@ const ControlPanel = ({
     handleSuggestionSelection(historyItem);
   };
 
-  const handleFavoriteItemClick = (favoriteItem) => {
-    handleSuggestionSelection(favoriteItem);
-  };
-
   const handleClearHistory = () => {
     clearLocationHistory();
     setLocationHistory([]);
   };
 
-  const handleToggleFavorite = () => {
-    if (localLocationName) {
-      const locationObj = {
-        display_name: localLocationName,
-        lat: location.lat,
-        lon: location.lng,
-        type: 'Current Location'
-      };
-      
-      const newFavoriteStatus = toggleLocationFavorite(locationObj);
-      setIsFavorite(newFavoriteStatus);
-      setLocationFavorites(getLocationFavorites());
-    }
-  };
 
   const handleLocationSubmit = (e) => {
     e.preventDefault();
@@ -197,17 +170,16 @@ const ControlPanel = ({
     }, 150);
   };
 
-  // Show history/favorites when input is focused and no search term
+  // Show history when input is focused and no search term
   const handleFocus = () => {
     if (!localLocationName) {
       setLocationHistory(getLocationHistory());
-      setLocationFavorites(getLocationFavorites());
       setShowSuggestions(true);
     } else if (localLocationName.length > 0) {
       setShowSuggestions(true);
     }
     setActiveSuggestionIndex(-1);
-    
+
     // Clear any previous search errors when focusing
     setLocationSearchError(null);
   };
@@ -251,15 +223,6 @@ const ControlPanel = ({
               disabled={isLocationSearching}
             />
             <button
-              type="button"
-              className={`btn favorite-btn ${isFavorite ? 'favorited' : ''}`}
-              onClick={handleToggleFavorite}
-              title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-              disabled={isLocationSearching}
-            >
-              {isFavorite ? '★' : '☆'}
-            </button>
-            <button
               type="submit"
               className="btn search-btn"
               disabled={isLocationSearching}
@@ -283,37 +246,8 @@ const ControlPanel = ({
           {showSuggestions && (
             <div className="suggestions-dropdown" ref={suggestionsListRef}>
               {!localLocationName && (
-                // Show favorites and history when no search term
+                // Show history when no search term
                 <>
-                  {locationFavorites.length > 0 && (
-                    <>
-                      <div className="suggestions-header">
-                        <span>⭐ Favoris</span>
-                      </div>
-                      <div className="suggestions-list">
-                        {locationFavorites.map((favoriteItem, index) => (
-                          <div 
-                            key={`fav-${favoriteItem.lat}-${favoriteItem.lon}-${index}`} 
-                            className={`suggestion-item favorite-item ${activeSuggestionIndex === index ? 'active' : ''}`}
-                            onClick={() => handleFavoriteItemClick(favoriteItem)}
-                            onMouseEnter={() => setActiveSuggestionIndex(index)}
-                          >
-                            <div className="suggestion-icon">
-                              {getLocationIcon(favoriteItem.type)}
-                            </div>
-                            <div className="suggestion-main">
-                              <div className="suggestion-name">★ {favoriteItem.display_name}</div>
-                              <div className="suggestion-type favorite-type">{favoriteItem.type}</div>
-                            </div>
-                            <div className="suggestion-coordinates">
-                              {favoriteItem.lat.toFixed(4)}, {favoriteItem.lon.toFixed(4)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                  
                   {locationHistory.length > 0 && (
                     <>
                       <div className="suggestions-header history-header">
@@ -328,37 +262,34 @@ const ControlPanel = ({
                         </button>
                       </div>
                       <div className="suggestions-list">
-                        {locationHistory.map((historyItem, index) => {
-                          const adjustedIndex = locationFavorites.length + index;
-                          return (
-                            <div 
-                              key={`hist-${historyItem.lat}-${historyItem.lon}-${index}`} 
-                              className={`suggestion-item history-item ${activeSuggestionIndex === adjustedIndex ? 'active' : ''}`}
-                              onClick={() => handleHistoryItemClick(historyItem)}
-                              onMouseEnter={() => setActiveSuggestionIndex(adjustedIndex)}
-                            >
-                              <div className="suggestion-icon">
-                                {getLocationIcon(historyItem.type)}
-                              </div>
-                              <div className="suggestion-main">
-                                <div className="suggestion-name">{historyItem.display_name}</div>
-                                <div className="suggestion-type history-type">{historyItem.type}</div>
-                              </div>
-                              <div className="suggestion-coordinates">
-                                {historyItem.lat.toFixed(4)}, {historyItem.lon.toFixed(4)}
-                              </div>
+                        {locationHistory.map((historyItem, index) => (
+                          <div
+                            key={`hist-${historyItem.lat}-${historyItem.lon}-${index}`}
+                            className={`suggestion-item history-item ${activeSuggestionIndex === index ? 'active' : ''}`}
+                            onClick={() => handleHistoryItemClick(historyItem)}
+                            onMouseEnter={() => setActiveSuggestionIndex(index)}
+                          >
+                            <div className="suggestion-icon">
+                              {getLocationIcon(historyItem.type)}
                             </div>
-                          );
-                        })}
+                            <div className="suggestion-main">
+                              <div className="suggestion-name">{historyItem.display_name}</div>
+                              <div className="suggestion-type history-type">{historyItem.type}</div>
+                            </div>
+                            <div className="suggestion-coordinates">
+                              {historyItem.lat.toFixed(4)}, {historyItem.lon.toFixed(4)}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </>
                   )}
-                  
-                  {locationFavorites.length === 0 && locationHistory.length === 0 && (
+
+                  {locationHistory.length === 0 && (
                     <div className="suggestions-list">
                       <div className="suggestion-item no-results">
                         <div className="no-results-icon">📍</div>
-                        <div>Aucun lieu récent ou favori</div>
+                        <div>Aucun lieu récent</div>
                         <div className="no-results-subtext">Commencez à rechercher pour créer votre historique</div>
                       </div>
                     </div>
