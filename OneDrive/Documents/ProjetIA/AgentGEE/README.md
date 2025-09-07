@@ -15,8 +15,8 @@ Avant de commencer, assurez-vous d'avoir installé :
 ### Étape 1 : Cloner le repository
 
 ```bash
-git clone https://github.com/VOTRE_USERNAME/NOM_DU_REPO.git
-cd NOM_DU_REPO
+git clone https://github.com/Bamiel2025/Analyseur-satellite.git
+cd Analyseur-satellite
 ```
 
 ### Étape 2 : Installer les dépendances
@@ -59,6 +59,15 @@ npm start
 ```
 
 3. Ouvrir votre navigateur à l'adresse : `http://localhost:3000`
+
+### 🌐 Accès Direct en Ligne
+
+**Pour un accès rapide sans installation :**
+```
+https://bamiel2025.github.io/Analyseur-satellite/
+```
+
+*Note : Certaines fonctionnalités avancées nécessitent l'installation complète.*
 
 ### Fonctionnalités principales
 
