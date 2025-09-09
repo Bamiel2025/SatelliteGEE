@@ -33,12 +33,7 @@ git add .
 
 echo.
 echo 💾 Commit des changements...
-git commit -m "Fix: Complete GitHub Pages deployment setup
-
-- Add GitHub Actions workflow for static deployment
-- Add .nojekyll and _config.yml to disable Jekyll
-- Add comprehensive deployment documentation
-- Fix Jekyll/SCSS conversion errors"
+git commit -m "Fix: Complete GitHub Pages deployment setup - Add workflow, disable Jekyll"
 
 if %errorlevel% equ 0 (
     echo.
