@@ -20,9 +20,12 @@ gee_error = None
 # Initialize Earth Engine
 def initialize_gee():
     global gee_initialized, gee_error
+    print("=== Starting GEE Initialization ===")
+
     try:
         # Get project ID from environment variables or use default
         project_id = os.environ.get('GEE_PROJECT_ID', 'your-project-id')
+        print(f"GEE_PROJECT_ID: {project_id}")
 
         # Check if project ID is set
         if project_id == 'your-project-id':
@@ -34,40 +37,77 @@ def initialize_gee():
         service_account_key = os.environ.get('GEE_SERVICE_ACCOUNT_KEY')
         service_account_key_b64 = os.environ.get('GEE_SERVICE_ACCOUNT_KEY_B64')
 
+        print(f"GEE_SERVICE_ACCOUNT_KEY present: {bool(service_account_key)}")
+        print(f"GEE_SERVICE_ACCOUNT_KEY_B64 present: {bool(service_account_key_b64)}")
+
         if service_account_key or service_account_key_b64:
+            print("Attempting service account authentication...")
             try:
                 import json
                 import tempfile
                 import base64
-                from google.oauth2 import service_account
+
+                # Try to import google-auth
+                try:
+                    from google.oauth2 import service_account
+                    print("google-auth imported successfully")
+                except ImportError as import_err:
+                    print(f"Failed to import google-auth: {import_err}")
+                    gee_error = f"google-auth package not available: {import_err}"
+                    return False
 
                 # Use base64 decoded key if available, otherwise use direct JSON
                 if service_account_key_b64:
-                    key_json = base64.b64decode(service_account_key_b64).decode('utf-8')
+                    print("Using base64 encoded service account key")
+                    try:
+                        key_json = base64.b64decode(service_account_key_b64).decode('utf-8')
+                        print("Base64 decoding successful")
+                    except Exception as decode_err:
+                        print(f"Base64 decoding failed: {decode_err}")
+                        gee_error = f"Failed to decode service account key: {decode_err}"
+                        return False
                 else:
+                    print("Using direct service account key")
                     key_json = service_account_key
 
                 # Write the service account key to a temporary file
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-                    json.dump(json.loads(key_json), f)
-                    key_file = f.name
+                try:
+                    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                        json.dump(json.loads(key_json), f)
+                        key_file = f.name
+                    print(f"Service account key written to temp file: {key_file}")
+                except Exception as file_err:
+                    print(f"Failed to write service account key to file: {file_err}")
+                    gee_error = f"Failed to create service account key file: {file_err}"
+                    return False
 
                 # Create credentials from the service account key
-                credentials = service_account.Credentials.from_service_account_file(key_file)
-                ee.Initialize(credentials, project=project_id)
-                gee_initialized = True
-                print("Google Earth Engine initialized successfully with service account")
-                return True
-            except ImportError:
-                gee_error = "google-auth package not installed. Please install it with: pip install google-auth"
-                print(gee_error)
-                return False
+                try:
+                    credentials = service_account.Credentials.from_service_account_file(key_file)
+                    print("Service account credentials created successfully")
+                except Exception as cred_err:
+                    print(f"Failed to create credentials: {cred_err}")
+                    gee_error = f"Failed to create service account credentials: {cred_err}"
+                    return False
+
+                # Initialize Earth Engine
+                try:
+                    ee.Initialize(credentials, project=project_id)
+                    gee_initialized = True
+                    print("Google Earth Engine initialized successfully with service account")
+                    return True
+                except Exception as init_err:
+                    print(f"GEE initialization failed: {init_err}")
+                    gee_error = f"GEE initialization failed: {init_err}"
+                    return False
+
             except Exception as sa_error:
+                print(f"Service account authentication failed: {sa_error}")
                 gee_error = f"Service account authentication failed: {str(sa_error)}"
-                print(gee_error)
                 return False
 
         # Fallback to interactive authentication (for local development)
+        print("No service account key found, trying interactive authentication...")
         try:
             ee.Initialize(project=project_id)
             gee_initialized = True
@@ -79,6 +119,7 @@ def initialize_gee():
                 print(gee_error)
                 return False
             else:
+                print(f"GEE initialization error: {e}")
                 raise e
 
     except ee.EEException as e:
