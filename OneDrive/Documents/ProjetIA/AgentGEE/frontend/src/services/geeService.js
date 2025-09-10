@@ -2,7 +2,7 @@
  * Service to communicate with the Python backend for GEE integration
  */
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = '';
 
 /**
  * Check authentication status with the backend
