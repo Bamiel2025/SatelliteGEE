@@ -6,4 +6,4 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 EXPOSE 8080
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "server:app"]
+CMD gunicorn -b 0.0.0.0:$PORT server:app

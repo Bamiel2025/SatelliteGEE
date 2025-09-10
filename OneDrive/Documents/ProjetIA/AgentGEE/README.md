@@ -23,11 +23,13 @@ cd Analyseur-satellite
 
 #### Pour le frontend (React) :
 ```bash
+cd frontend
 npm install
 ```
 
 #### Pour le backend (Python) :
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
 
@@ -50,11 +52,13 @@ GOOGLE_APPLICATION_CREDENTIALS=path/to/your/credentials.json
 
 1. **Terminal 1** - Lancer le serveur backend :
 ```bash
+cd backend
 python server.py
 ```
 
 2. **Terminal 2** - Lancer le frontend :
 ```bash
+cd frontend
 npm start
 ```
 
@@ -68,6 +72,27 @@ https://bamiel2025.github.io/Analyseur-satellite/
 ```
 
 *Note : Certaines fonctionnalités avancées nécessitent l'installation complète.*
+
+## 🚀 Déploiement
+
+### Déploiement du Backend sur Back4App
+
+Le backend peut être déployé sur Back4App en tant que conteneur Docker :
+
+1. Créer un compte Back4App
+2. Créer une nouvelle application
+3. Sélectionner "Container as a Service (CaaS)"
+4. Uploader le dossier `backend/` comme source
+5. Configurer les variables d'environnement dans Back4App
+6. Déployer
+
+### Déploiement du Frontend sur GitHub Pages
+
+Le frontend se déploie automatiquement sur GitHub Pages via GitHub Actions :
+
+1. Pousser le code vers la branche `main`
+2. Le workflow GitHub Actions se déclenche automatiquement
+3. Le site est disponible sur `https://votre-username.github.io/nom-du-repo/`
 
 ### Fonctionnalités principales
 
@@ -94,21 +119,30 @@ https://bamiel2025.github.io/Analyseur-satellite/
 ## 📁 Structure du projet
 
 ```
-├── src/
-│   ├── components/          # Composants React
-│   │   ├── App.jsx         # Composant principal
-│   │   ├── SplitMapComponent.jsx    # Carte interactive
-│   │   ├── ControlPanel.jsx         # Panneau de contrôle
-│   │   ├── MeasurementControls.jsx  # Outils de mesure
-│   │   └── AnalysisResults.jsx      # Résultats d'analyse
-│   ├── services/           # Services backend
-│   │   ├── geeService.js   # Service Google Earth Engine
-│   │   └── locationService.js       # Service de géolocalisation
-│   └── style.css           # Styles CSS
-├── server.py               # Serveur backend Python
-├── requirements.txt        # Dépendances Python
-├── package.json           # Dépendances Node.js
-└── README.md              # Ce fichier
+├── frontend/
+│   ├── src/
+│   │   ├── components/          # Composants React
+│   │   │   ├── App.jsx         # Composant principal
+│   │   │   ├── SplitMapComponent.jsx    # Carte interactive
+│   │   │   ├── ControlPanel.jsx         # Panneau de contrôle
+│   │   │   ├── MeasurementControls.jsx  # Outils de mesure
+│   │   │   └── AnalysisResults.jsx      # Résultats d'analyse
+│   │   ├── services/           # Services backend
+│   │   │   ├── geeService.js   # Service Google Earth Engine
+│   │   │   └── locationService.js       # Service de géolocalisation
+│   │   └── style.css           # Styles CSS
+│   ├── public/                 # Assets statiques
+│   ├── docs/                   # Site construit pour GitHub Pages
+│   ├── package.json           # Dépendances Node.js
+│   ├── vite.config.js         # Configuration Vite
+│   └── .github/workflows/     # Workflows GitHub Actions
+├── backend/
+│   ├── server.py               # Serveur backend Python
+│   ├── requirements.txt        # Dépendances Python
+│   ├── Dockerfile             # Configuration Docker
+│   ├── .env                   # Variables d'environnement
+│   └── ...                    # Autres fichiers Python
+└── README.md                  # Ce fichier
 ```
 
 ## 🔧 Configuration avancée
@@ -153,11 +187,13 @@ Les filtres disponibles sont configurés dans `src/services/geeService.js` :
 
 #### Erreurs de dépendances
 ```bash
-# Nettoyer et réinstaller
+# Nettoyer et réinstaller le frontend
+cd frontend
 rm -rf node_modules package-lock.json
 npm install
 
-# Pour Python
+# Pour le backend
+cd ../backend
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
