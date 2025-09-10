@@ -32,20 +32,30 @@ def initialize_gee():
 
         # Check for service account key (for production deployment)
         service_account_key = os.environ.get('GEE_SERVICE_ACCOUNT_KEY')
-        if service_account_key:
+        service_account_key_b64 = os.environ.get('GEE_SERVICE_ACCOUNT_KEY_B64')
+
+        if service_account_key or service_account_key_b64:
             try:
                 import json
                 import tempfile
+                import base64
                 from google.oauth2 import service_account
+
+                # Use base64 decoded key if available, otherwise use direct JSON
+                if service_account_key_b64:
+                    key_json = base64.b64decode(service_account_key_b64).decode('utf-8')
+                else:
+                    key_json = service_account_key
 
                 # Write the service account key to a temporary file
                 with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-                    json.dump(json.loads(service_account_key), f)
+                    json.dump(json.loads(key_json), f)
                     key_file = f.name
 
                 # Create credentials from the service account key
                 credentials = service_account.Credentials.from_service_account_file(key_file)
                 ee.Initialize(credentials, project=project_id)
+                gee_initialized = True
                 print("Google Earth Engine initialized successfully with service account")
                 return True
             except ImportError:
