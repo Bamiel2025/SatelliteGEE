@@ -23,17 +23,54 @@ def initialize_gee():
     try:
         # Get project ID from environment variables or use default
         project_id = os.environ.get('GEE_PROJECT_ID', 'your-project-id')
-        
+
         # Check if project ID is set
         if project_id == 'your-project-id':
             gee_error = "Warning: Using default project ID. Please set GEE_PROJECT_ID in your environment variables. See GEE_AUTHENTICATION.md for setup instructions."
             print(gee_error)
             return False
-        
-        ee.Initialize(project=project_id)
-        gee_initialized = True
-        print("Google Earth Engine initialized successfully")
-        return True
+
+        # Check for service account key (for production deployment)
+        service_account_key = os.environ.get('GEE_SERVICE_ACCOUNT_KEY')
+        if service_account_key:
+            try:
+                import json
+                import tempfile
+                from google.oauth2 import service_account
+
+                # Write the service account key to a temporary file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                    json.dump(json.loads(service_account_key), f)
+                    key_file = f.name
+
+                # Create credentials from the service account key
+                credentials = service_account.Credentials.from_service_account_file(key_file)
+                ee.Initialize(credentials, project=project_id)
+                print("Google Earth Engine initialized successfully with service account")
+                return True
+            except ImportError:
+                gee_error = "google-auth package not installed. Please install it with: pip install google-auth"
+                print(gee_error)
+                return False
+            except Exception as sa_error:
+                gee_error = f"Service account authentication failed: {str(sa_error)}"
+                print(gee_error)
+                return False
+
+        # Fallback to interactive authentication (for local development)
+        try:
+            ee.Initialize(project=project_id)
+            gee_initialized = True
+            print("Google Earth Engine initialized successfully")
+            return True
+        except ee.EEException as e:
+            if "authentication" in str(e).lower():
+                gee_error = "Earth Engine authentication required. Please run 'earthengine authenticate' locally or set up service account for production."
+                print(gee_error)
+                return False
+            else:
+                raise e
+
     except ee.EEException as e:
         gee_error = f"Earth Engine error: {str(e)}. Please check GEE_AUTHENTICATION.md for setup instructions."
         print(f"Failed to initialize Google Earth Engine: {e}")
