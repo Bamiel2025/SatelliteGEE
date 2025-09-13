@@ -10,6 +10,10 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+print("=== Flask Application Starting ===")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Python path: {os.sys.path}")
+
 app = Flask(__name__, static_folder='dist', static_url_path='')
 CORS(app)  # Enable CORS for all routes
 
