@@ -2,7 +2,7 @@
  * Service to communicate with the Python backend for GEE integration
  */
 
-const API_BASE_URL = '';
+const API_BASE_URL = 'https://satellitegee.onrender.com';
 
 /**
  * Check authentication status with the backend
