@@ -1,11 +1,33 @@
+print("=== IMPORTS STARTING ===")
+
 from flask import Flask, jsonify, request
+print("✓ Flask imported")
+
 from flask_cors import CORS
-import ee
+print("✓ Flask-CORS imported")
+
+try:
+    import ee
+    print("✓ Earth Engine API imported")
+except ImportError as e:
+    print(f"❌ Failed to import Earth Engine API: {e}")
+
 import requests
+print("✓ Requests imported")
+
 import json
+print("✓ JSON imported")
+
 from datetime import datetime
+print("✓ Datetime imported")
+
 import os
+print("✓ OS imported")
+
 from dotenv import load_dotenv
+print("✓ Python-dotenv imported")
+
+print("=== ALL IMPORTS COMPLETED ===")
 
 # Load environment variables
 load_dotenv()
